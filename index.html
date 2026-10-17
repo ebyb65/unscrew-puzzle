@@ -2,64 +2,268 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Unscrew Anything</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>Unscrew Frenzy 3D</title>
     <style>
         * {
             box-sizing: border-box;
             user-select: none;
             -webkit-user-select: none;
-        }
-        body {
             margin: 0;
             padding: 0;
-            background-color: #0f1015;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
-        #game-container {
-            width: 380px;
-            height: 640px;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
-            border-radius: 16px;
+        body {
+            background: linear-gradient(180deg, #dbeafe 0%, #bfdbfe 50%, #93c5fd 100%);
             overflow: hidden;
-            position: relative;
+            height: 100vh;
+            width: 100vw;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            touch-action: none;
+        }
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        #ui-top {
+            position: absolute;
+            top: 12px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 10;
+            pointer-events: none;
+        }
+        .level-badge {
+            background: rgba(255, 255, 255, 0.9);
+            color: #1e3a8a;
+            font-weight: 800;
+            font-size: 15px;
+            padding: 4px 16px;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+        }
+        .boxes-container {
+            display: flex;
+            gap: 12px;
+            pointer-events: auto;
+        }
+        .box-card {
+            width: 96px;
+            height: 52px;
+            background: #ffffff;
+            border-radius: 14px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            border: 3.5px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: space-evenly;
+            padding: 4px 6px;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .box-socket {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            border: 2px dashed #94a3b8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .box-socket.filled {
+            border: none;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.25);
+        }
+        .box-socket.filled::after {
+            content: '';
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: inherit;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            border: 1.5px solid #fff;
+        }
+        #ui-bottom {
+            position: absolute;
+            bottom: 24px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 10;
+            pointer-events: none;
+        }
+        .tray-hint {
+            font-size: 12px;
+            font-weight: 700;
+            color: #1e3a8a;
+            opacity: 0.7;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .backup-tray {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            padding: 8px 14px;
+            border-radius: 28px;
+            display: flex;
+            gap: 10px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            pointer-events: auto;
+        }
+        .hole-slot {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #cbd5e1;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.3);
+            border: 2.5px solid #94a3b8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .hole-slot.locked {
+            background: #94a3b8;
+            border-color: #64748b;
+        }
+        .hole-slot.locked::before {
+            content: '🔒';
+            font-size: 14px;
+        }
+        .hole-screw {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            border: 2px solid #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .hole-screw::after {
+            content: '+';
+            color: rgba(255,255,255,0.9);
+            font-size: 18px;
+            font-weight: 900;
+            margin-top: -2px;
+        }
+        .rotate-hint {
+            position: absolute;
+            bottom: 95px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.6);
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 5px 14px;
+            border-radius: 16px;
+            pointer-events: none;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            opacity: 0.85;
+            transition: opacity 0.5s;
+        }
+        .modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-card {
+            background: #ffffff;
+            width: 300px;
+            border-radius: 24px;
+            padding: 24px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            transform: scale(0.85);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .modal-overlay.active .modal-card {
+            transform: scale(1);
+        }
+        .modal-stars {
+            font-size: 36px;
+            margin-bottom: 8px;
+        }
+        .modal-title {
+            font-size: 24px;
+            font-weight: 900;
+            color: #1e293b;
+            margin-bottom: 6px;
+        }
+        .modal-subtitle {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 20px;
+        }
+        .modal-btn {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 800;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 6px 16px rgba(29, 78, 216, 0.4);
+            width: 100%;
         }
     </style>
-    <!-- Phaser 3 CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
-    <!-- Our Game Logic & Scene -->
-    <script src="unscrew_puzzle_core.js"></script>
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Tween.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
 </head>
 <body>
-    <div id="game-container"></div>
-
-    <script>
-        window.addEventListener('DOMContentLoaded', () => {
-            const { UnscrewPuzzleScene, SampleLevel } = window.UnscrewPuzzle;
-
-            const config = {
-                type: Phaser.AUTO,
-                width: 380,
-                height: 640,
-                parent: 'game-container',
-                backgroundColor: '#1E1E24',
-                scale: {
-                    mode: Phaser.Scale.FIT,
-                    autoCenter: Phaser.Scale.CENTER_BOTH
-                },
-                scene: [UnscrewPuzzleScene]
-            };
-
-            const game = new Phaser.Game(config);
-
-            // Pass sample level data into the scene
-            game.scene.start('UnscrewPuzzleScene', { levelConfig: SampleLevel });
-        });
-    </script>
+    <div id="canvas-container"></div>
+    <div id="ui-top">
+        <div class="level-badge">⭐ LEVEL 1</div>
+        <div class="boxes-container" id="boxes-container"></div>
+    </div>
+    <div class="rotate-hint" id="rotate-hint">
+        <span>🔄</span> Drag horizontally to rotate 3D cottage
+    </div>
+    <div id="ui-bottom">
+        <div class="tray-hint">Backup Tray</div>
+        <div class="backup-tray" id="backup-tray"></div>
+    </div>
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-stars" id="modal-icon">🏆</div>
+            <div class="modal-title" id="modal-title">VICTORY!</div>
+            <div class="modal-subtitle" id="modal-desc">All screws cleared from the 3D toy!</div>
+            <button class="modal-btn" id="modal-btn" onclick="location.reload()">PLAY AGAIN</button>
+        </div>
+    </div>
+    <script src="unscrew_puzzle_core.js"></script>
 </body>
 </html>
