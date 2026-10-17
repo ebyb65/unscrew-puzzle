@@ -1,44 +1,15 @@
 /**
  * ============================================================================
- * UNSCREW ANYTHING - PREMIUM MOBILE PUZZLE GAME (Phaser 3)
- * Full Visual Polish, Procedural Textures, Realistic Screws & Physics Planks
- * Web Audio FX Integration (Zero external assets required)
+ * UNSCREW FRENZY 3D - THREE.JS ENGINE
+ * 360° Rotatable Turntable Cottage + Raycasting + Web Audio Synthesizer
  * ============================================================================
  */
 
-(function (root, factory) {
-    if (typeof module === 'object' && module.exports) {
-        module.exports = factory(require('events'));
-    } else {
-        const PhaserEvents = (typeof Phaser !== 'undefined' && Phaser.Events) ? Phaser.Events.EventEmitter : null;
-        root.UnscrewPuzzle = factory(PhaserEvents);
-    }
-}(typeof self !== 'undefined' ? self : (typeof global !== 'undefined' ? global : this), function (EventEmitterClass) {
-
-    const EventEmitter = EventEmitterClass || class SimpleEventEmitter {
-        constructor() { this._events = {}; }
-        on(event, listener) {
-            (this._events[event] = this._events[event] || []).push(listener);
-            return this;
-        }
-        emit(event, ...args) {
-            if (this._events[event]) {
-                this._events[event].slice().forEach(fn => fn(...args));
-            }
-        }
-        off(event, listener) {
-            if (!this._events[event]) return;
-            this._events[event] = this._events[event].filter(fn => fn !== listener);
-        }
-    };
-
-    /**
-     * Synthesized Real-time Audio FX via Web Audio API (No external sound files)
-     */
-    const SoundFX = {
+(function () {
+    const Sound = {
         ctx: null,
         init() {
-            if (!this.ctx && typeof window !== 'undefined') {
+            if (!this.ctx) {
                 const AudioCtx = window.AudioContext || window.webkitAudioContext;
                 if (AudioCtx) this.ctx = new AudioCtx();
             }
@@ -46,22 +17,25 @@
                 this.ctx.resume();
             }
         },
-        playUnscrew() {
+        playRatchet() {
             this.init();
             if (!this.ctx) return;
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
-            osc.connect(gain);
-            gain.connect(this.ctx.destination);
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(320, this.ctx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(750, this.ctx.currentTime + 0.12);
-            gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
-            osc.start();
-            osc.stop(this.ctx.currentTime + 0.12);
+            const now = this.ctx.currentTime;
+            for (let i = 0; i < 4; i++) {
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.type = 'triangle';
+                const t = now + i * 0.035;
+                osc.frequency.setValueAtTime(450 + i * 90, t);
+                gain.gain.setValueAtTime(0.25, t);
+                gain.gain.exponentialRampToValueAtTime(0.01, t + 0.03);
+                osc.start(t);
+                osc.stop(t + 0.03);
+            }
         },
-        playChime() {
+        playPop() {
             this.init();
             if (!this.ctx) return;
             const osc = this.ctx.createOscillator();
@@ -69,1031 +43,565 @@
             osc.connect(gain);
             gain.connect(this.ctx.destination);
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(987.77, this.ctx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(1318.51, this.ctx.currentTime + 0.18);
-            gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.18);
-            osc.start();
-            osc.stop(this.ctx.currentTime + 0.18);
+            const now = this.ctx.currentTime;
+            osc.frequency.setValueAtTime(600, now);
+            osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+            osc.start(now);
+            osc.stop(now + 0.1);
         },
-        playThud() {
+        playBoxComplete() {
             this.init();
             if (!this.ctx) return;
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
-            osc.connect(gain);
-            gain.connect(this.ctx.destination);
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(160, this.ctx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(45, this.ctx.currentTime + 0.22);
-            gain.gain.setValueAtTime(0.35, this.ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.22);
-            osc.start();
-            osc.stop(this.ctx.currentTime + 0.22);
-        },
-        playBoxFilled() {
-            this.init();
-            if (!this.ctx) return;
-            const notes = [587.33, 880, 1174.66];
+            const notes = [523.25, 659.25, 783.99, 1046.5];
             notes.forEach((freq, idx) => {
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
                 osc.connect(gain);
                 gain.connect(this.ctx.destination);
                 osc.type = 'triangle';
-                const startTime = this.ctx.currentTime + idx * 0.08;
-                osc.frequency.setValueAtTime(freq, startTime);
-                gain.gain.setValueAtTime(0.2, startTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.2);
-                osc.start(startTime);
-                osc.stop(startTime + 0.2);
+                const t = this.ctx.currentTime + idx * 0.07;
+                osc.frequency.setValueAtTime(freq, t);
+                gain.gain.setValueAtTime(0.25, t);
+                gain.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
+                osc.start(t);
+                osc.stop(t + 0.2);
             });
         },
-        playFanfare() {
+        playWinFanfare() {
             this.init();
             if (!this.ctx) return;
-            const notes = [523.25, 659.25, 783.99, 1046.50];
+            const notes = [523.25, 659.25, 783.99, 1046.5, 1318.5];
             notes.forEach((freq, idx) => {
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
                 osc.connect(gain);
                 gain.connect(this.ctx.destination);
-                osc.type = 'triangle';
-                const startTime = this.ctx.currentTime + idx * 0.12;
-                osc.frequency.setValueAtTime(freq, startTime);
-                gain.gain.setValueAtTime(0.25, startTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.3);
-                osc.start(startTime);
-                osc.stop(startTime + 0.3);
+                osc.type = 'sine';
+                const t = this.ctx.currentTime + idx * 0.1;
+                osc.frequency.setValueAtTime(freq, t);
+                gain.gain.setValueAtTime(0.3, t);
+                gain.gain.exponentialRampToValueAtTime(0.01, t + 0.35);
+                osc.start(t);
+                osc.stop(t + 0.35);
             });
         }
     };
 
-    /**
-     * ------------------------------------------------------------------------
-     * 1. DATA VALIDATION & SCHEMA
-     * ------------------------------------------------------------------------
-     */
-    const LevelValidator = {
-        validate(config) {
-            const errors = [];
-            if (!config || !Array.isArray(config.screws) || !Array.isArray(config.plates)) {
-                return { isValid: false, errors: ['Invalid level configuration structure.'] };
-            }
+    const LEVEL_CONFIG = {
+        initialActiveBoxes: 2,
+        maxActiveBoxes: 4,
+        initialBackupHoles: 5,
+        maxBackupHoles: 7,
+        boxQueue: ['#EF4444', '#3B82F6', '#10B981', '#F59E0B'],
+        screws: [
+            // FRONT (Red #EF4444)
+            { id: 's_r1', color: '#EF4444', x: -0.65, y: 0.3, z: 1.05, nx: 0, ny: 0, nz: 1 },
+            { id: 's_r2', color: '#EF4444', x: 0.65,  y: 0.3, z: 1.05, nx: 0, ny: 0, nz: 1 },
+            { id: 's_r3', color: '#EF4444', x: 0.0,   y: -0.4, z: 1.05, nx: 0, ny: 0, nz: 1 },
 
-            const colorCounts = {};
-            const screwIds = new Set();
-            for (const screw of config.screws) {
-                if (screwIds.has(screw.id)) {
-                    errors.push(`Duplicate screw ID: "${screw.id}".`);
-                }
-                screwIds.add(screw.id);
-                const c = (screw.color || '').toUpperCase();
-                colorCounts[c] = (colorCounts[c] || 0) + 1;
-            }
+            // LEFT (Blue #3B82F6)
+            { id: 's_b1', color: '#3B82F6', x: -1.05, y: 0.3, z: -0.5, nx: -1, ny: 0, nz: 0 },
+            { id: 's_b2', color: '#3B82F6', x: -1.05, y: 0.3, z: 0.5,  nx: -1, ny: 0, nz: 0 },
+            { id: 's_b3', color: '#3B82F6', x: -0.85, y: 1.25, z: 0.0, nx: -0.7, ny: 0.7, nz: 0 },
 
-            for (const [color, count] of Object.entries(colorCounts)) {
-                if (count % 3 !== 0) {
-                    errors.push(`Color ${color} has ${count} screws (must be an exact multiple of 3).`);
-                }
-            }
+            // RIGHT (Green #10B981)
+            { id: 's_g1', color: '#10B981', x: 1.05, y: 0.3, z: -0.5, nx: 1, ny: 0, nz: 0 },
+            { id: 's_g2', color: '#10B981', x: 1.05, y: 0.3, z: 0.5,  nx: 1, ny: 0, nz: 0 },
+            { id: 's_g3', color: '#10B981', x: 0.85, y: 1.25, z: 0.0, nx: 0.7, ny: 0.7, nz: 0 },
 
-            return { isValid: errors.length === 0, errors };
-        }
+            // BACK (Yellow #F59E0B)
+            { id: 's_y1', color: '#F59E0B', x: -0.6, y: 0.3, z: -1.05, nx: 0, ny: 0, nz: -1 },
+            { id: 's_y2', color: '#F59E0B', x: 0.6,  y: 0.3, z: -1.05, nx: 0, ny: 0, nz: -1 },
+            { id: 's_y3', color: '#F59E0B', x: 0.45, y: 1.75, z: -0.4, nx: 0, ny: 0, nz: -1 }
+        ]
     };
 
-    /**
-     * ------------------------------------------------------------------------
-     * 2. CORE GAMEPLAY STATE MACHINE (Headless Model)
-     * ------------------------------------------------------------------------
-     */
-    class UnscrewGameModel extends EventEmitter {
+    class StateMachine {
         constructor(config) {
-            super();
             this.config = config;
-            this.initialActiveBoxes = config.initialActiveBoxes || 2;
-            this.maxActiveBoxes = config.maxActiveBoxes || 4;
-            this.unlockedActiveBoxes = this.initialActiveBoxes;
-
-            this.initialBackupHoles = config.initialBackupHoles || 5;
-            this.maxBackupHoles = config.maxBackupHoles || 7;
-            this.unlockedBackupHoles = this.initialBackupHoles;
-
-            this.status = 'READY';
             this.activeBoxes = [];
-            this.boxQueue = [...(config.boxQueue || [])];
+            this.boxQueue = [...config.boxQueue];
             this.backupHoles = [];
             this.screws = new Map();
-            this.plates = new Map();
+            this.isGameOver = false;
 
-            this._initModel(config);
-        }
-
-        _initModel(config) {
-            this.backupHoles = [];
-            for (let i = 0; i < this.maxBackupHoles; i++) {
+            for (let i = 0; i < config.maxBackupHoles; i++) {
                 this.backupHoles.push({
                     index: i,
-                    isUnlocked: i < this.unlockedBackupHoles,
+                    isUnlocked: i < config.initialBackupHoles,
                     screwId: null,
                     color: null
                 });
             }
 
-            for (const plate of config.plates) {
-                this.plates.set(plate.id, {
-                    ...plate,
-                    remainingScrewIds: new Set(plate.requiredScrewIds || []),
-                    isDetached: false
-                });
+            for (const s of config.screws) {
+                this.screws.set(s.id, { ...s, location: 'MODEL', isRemoved: false });
             }
 
-            for (const screw of config.screws) {
-                this.screws.set(screw.id, {
-                    ...screw,
-                    location: 'BOARD',
-                    isRemoved: false
-                });
-            }
-
-            this.activeBoxes = [];
-            while (this.activeBoxes.length < this.unlockedActiveBoxes && this.boxQueue.length > 0) {
-                const nextColor = this.boxQueue.shift();
+            while (this.activeBoxes.length < config.initialActiveBoxes && this.boxQueue.length > 0) {
+                const color = this.boxQueue.shift();
                 this.activeBoxes.push({
-                    id: `box_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-                    color: nextColor.toUpperCase(),
+                    id: 'b_' + Math.random().toString(36).substr(2, 5),
+                    color: color.toUpperCase(),
                     capacity: 3,
                     screws: []
                 });
             }
-
-            this.status = 'PLAYING';
         }
 
-        isScrewAccessible(screwId) {
+        tapScrew(screwId) {
+            if (this.isGameOver) return null;
             const screw = this.screws.get(screwId);
-            if (!screw || screw.location !== 'BOARD' || screw.isRemoved) return false;
+            if (!screw || screw.isRemoved) return null;
 
-            for (const plate of this.plates.values()) {
-                if (!plate.isDetached && plate.layer > screw.layer) {
-                    const halfW = (plate.width || 0) / 2;
-                    const halfH = (plate.height || 0) / 2;
-                    if (screw.x >= plate.x - halfW && screw.x <= plate.x + halfW &&
-                        screw.y >= plate.y - halfH && screw.y <= plate.y + halfH) {
-                        return false;
-                    }
-                }
-            }
-            return true;
-        }
+            const c = screw.color.toUpperCase();
+            const targetBoxIdx = this.activeBoxes.findIndex(b => b.color === c && b.screws.length < 3);
 
-        handleScrewTap(screwId) {
-            if (this.status !== 'PLAYING') return false;
-
-            const screw = this.screws.get(screwId);
-            if (!screw || !this.isScrewAccessible(screwId)) {
-                this.emit('TAP_REJECTED', { screwId, reason: 'SCREW_OCCLUDED' });
-                return false;
-            }
-
-            const screwColor = screw.color.toUpperCase();
-
-            // 1. Try matching active box
-            const matchingBoxIndex = this.activeBoxes.findIndex(
-                b => b.color === screwColor && b.screws.length < 3
-            );
-
-            if (matchingBoxIndex !== -1) {
-                const targetBox = this.activeBoxes[matchingBoxIndex];
-                this._detachScrewFromBoard(screwId);
+            if (targetBoxIdx !== -1) {
+                const box = this.activeBoxes[targetBoxIdx];
+                screw.isRemoved = true;
                 screw.location = 'BOX';
-                targetBox.screws.push(screwId);
-
-                this.emit('SCREW_MOVED_TO_BOX', {
+                box.screws.push(screwId);
+                return {
+                    action: 'TO_BOX',
                     screwId,
                     color: screw.color,
-                    boxId: targetBox.id,
-                    boxIndex: matchingBoxIndex,
-                    currentScrewsInBox: targetBox.screws.length
-                });
-
-                if (targetBox.screws.length === 3) {
-                    this._onBoxCompleted(matchingBoxIndex);
-                } else {
-                    this._evaluateGameState();
-                }
-                return true;
+                    boxIndex: targetBoxIdx,
+                    boxCount: box.screws.length,
+                    boxCompleted: box.screws.length === 3
+                };
             }
 
-            // 2. Try placing into first empty backup hole
-            const emptyHoleIndex = this.backupHoles.findIndex(
-                slot => slot.isUnlocked && slot.screwId === null
-            );
-
-            if (emptyHoleIndex !== -1) {
-                const targetSlot = this.backupHoles[emptyHoleIndex];
-                this._detachScrewFromBoard(screwId);
+            const emptyHoleIdx = this.backupHoles.findIndex(h => h.isUnlocked && h.screwId === null);
+            if (emptyHoleIdx !== -1) {
+                const hole = this.backupHoles[emptyHoleIdx];
+                screw.isRemoved = true;
                 screw.location = 'BACKUP';
-                targetSlot.screwId = screwId;
-                targetSlot.color = screwColor;
-
-                this.emit('SCREW_MOVED_TO_BACKUP', {
-                    screwId,
-                    color: screw.color,
-                    holeIndex: emptyHoleIndex
-                });
-
-                this._evaluateGameState();
-                return true;
+                hole.screwId = screwId;
+                hole.color = c;
+                return { action: 'TO_BACKUP', screwId, color: screw.color, holeIndex: emptyHoleIdx };
             }
 
-            // 3. Backup full and no matching box
-            this.emit('TAP_REJECTED', { screwId, reason: 'STORAGE_FULL' });
-            this.checkGameOver();
-            return false;
+            return { action: 'BLOCKED' };
         }
 
-        _detachScrewFromBoard(screwId) {
-            const screw = this.screws.get(screwId);
-            screw.isRemoved = true;
-
-            if (Array.isArray(screw.boundPlateIds)) {
-                for (const plateId of screw.boundPlateIds) {
-                    const plate = this.plates.get(plateId);
-                    if (plate && !plate.isDetached) {
-                        plate.remainingScrewIds.delete(screwId);
-                        if (plate.remainingScrewIds.size === 0) {
-                            plate.isDetached = true;
-                            this.emit('PLATE_DETACHED', { plateId: plate.id, layer: plate.layer });
-                        } else if (plate.remainingScrewIds.size === 1) {
-                            const pivotScrewId = Array.from(plate.remainingScrewIds)[0];
-                            const pivotScrew = this.screws.get(pivotScrewId);
-                            this.emit('PLATE_PENDULUM_SWING', {
-                                plateId: plate.id,
-                                pivotX: pivotScrew.x,
-                                pivotY: pivotScrew.y
-                            });
-                        }
-                    }
-                }
-            }
-        }
-
-        _onBoxCompleted(boxIndex) {
-            const completedBox = this.activeBoxes[boxIndex];
-            this.emit('BOX_COMPLETED', {
-                boxId: completedBox.id,
-                color: completedBox.color,
-                boxIndex
-            });
-
+        onBoxCompleted(boxIndex) {
             this.activeBoxes.splice(boxIndex, 1);
-
+            let newBox = null;
             if (this.boxQueue.length > 0) {
                 const nextColor = this.boxQueue.shift().toUpperCase();
-                const newBox = {
-                    id: `box_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+                newBox = {
+                    id: 'b_' + Math.random().toString(36).substr(2, 5),
                     color: nextColor,
                     capacity: 3,
                     screws: []
                 };
                 this.activeBoxes.splice(boxIndex, 0, newBox);
-
-                this.emit('BOX_SPAWNED', {
-                    boxId: newBox.id,
-                    color: newBox.color,
-                    boxIndex,
-                    remainingQueueCount: this.boxQueue.length
-                });
-
-                this._cascadeBackupHoles(boxIndex);
-            } else {
-                this.emit('BOX_QUEUE_DEPLETED', { vacatedIndex: boxIndex });
-                this._evaluateGameState();
             }
-        }
 
-        _cascadeBackupHoles(boxIndex) {
-            const box = this.activeBoxes[boxIndex];
-            if (!box) return;
-
-            let pulledAny = true;
-            while (pulledAny && box.screws.length < 3) {
-                pulledAny = false;
+            const pulled = [];
+            if (newBox) {
                 for (let i = 0; i < this.backupHoles.length; i++) {
-                    const slot = this.backupHoles[i];
-                    if (slot.isUnlocked && slot.screwId !== null && slot.color === box.color) {
-                        const screwId = slot.screwId;
-                        const screw = this.screws.get(screwId);
-
-                        slot.screwId = null;
-                        slot.color = null;
-                        screw.location = 'BOX';
-                        box.screws.push(screwId);
-
-                        this.emit('SCREW_PULLED_FROM_BACKUP', {
-                            screwId,
-                            color: screw.color,
-                            holeIndex: i,
-                            boxId: box.id,
-                            boxIndex,
-                            currentScrewsInBox: box.screws.length
-                        });
-
-                        pulledAny = true;
-                        if (box.screws.length === 3) break;
+                    const hole = this.backupHoles[i];
+                    if (hole.isUnlocked && hole.screwId && hole.color === newBox.color && newBox.screws.length < 3) {
+                        const sId = hole.screwId;
+                        const s = this.screws.get(sId);
+                        s.location = 'BOX';
+                        newBox.screws.push(sId);
+                        hole.screwId = null;
+                        hole.color = null;
+                        pulled.push({ screwId: sId, color: s.color, holeIndex: i });
                     }
                 }
             }
-
-            if (box.screws.length === 3) {
-                this._onBoxCompleted(boxIndex);
-            } else {
-                this._evaluateGameState();
-            }
+            return { newBox, boxIndex, pulled };
         }
 
-        _evaluateGameState() {
-            if (this.status !== 'PLAYING') return;
-
-            let remaining = 0;
+        checkWin() {
+            let left = 0;
             for (const s of this.screws.values()) {
-                if (s.location === 'BOARD' || s.location === 'BACKUP') remaining++;
+                if (s.location === 'MODEL' || s.location === 'BACKUP') left++;
             }
-
-            if (remaining === 0) {
-                this.status = 'WON';
-                this.emit('GAME_OVER_WIN', { totalScrews: this.screws.size });
-                return;
-            }
-
-            this.checkGameOver();
+            return left === 0;
         }
 
-        checkGameOver() {
-            if (this.status !== 'PLAYING') return false;
-
-            const isBackupFull = this.backupHoles
-                .filter(s => s.isUnlocked)
-                .every(s => s.screwId !== null);
-
+        checkLoss() {
+            const isBackupFull = this.backupHoles.filter(h => h.isUnlocked).every(h => h.screwId !== null);
             if (!isBackupFull) return false;
 
-            const openBoxColors = new Set(
-                this.activeBoxes.filter(b => b.screws.length < 3).map(b => b.color)
-            );
-
-            if (openBoxColors.size === 0) {
-                this.status = 'LOST';
-                this.emit('GAME_OVER_LOSS', { reason: 'BACKUP_FULL_NO_OPEN_BOXES' });
-                return true;
+            const openColors = new Set(this.activeBoxes.filter(b => b.screws.length < 3).map(b => b.color));
+            for (const s of this.screws.values()) {
+                if (!s.isRemoved && openColors.has(s.color.toUpperCase())) return false;
             }
-
-            let hasValidMove = false;
-            for (const [id, screw] of this.screws.entries()) {
-                if (screw.location === 'BOARD' && !screw.isRemoved) {
-                    if (openBoxColors.has(screw.color.toUpperCase())) {
-                        if (this.isScrewAccessible(id)) {
-                            hasValidMove = true;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (!hasValidMove) {
-                this.status = 'LOST';
-                this.emit('GAME_OVER_LOSS', { reason: 'BACKUP_FULL_AND_NO_MATCHING_MOVES' });
-                return true;
-            }
-            return false;
+            return true;
         }
     }
 
-    /**
-     * ------------------------------------------------------------------------
-     * 3. DELUXE PHASER 3 SCENE (Realistic 3D Graphics, Sound Hooks, Juice)
-     * ------------------------------------------------------------------------
-     */
-    const BaseScene = (typeof Phaser !== 'undefined' && Phaser.Scene) ? Phaser.Scene : class {};
+    let scene, camera, renderer, modelGroup;
+    let screwMeshMap = new Map();
+    let stateMachine, raycaster, mouse;
 
-    class UnscrewPuzzleScene extends BaseScene {
-        constructor() {
-            super({ key: 'UnscrewPuzzleScene' });
-        }
+    let isDragging = false;
+    let previousPointerX = 0;
+    let targetRotationY = 0;
+    let currentRotationY = 0;
+    let pointerDownStartPos = { x: 0, y: 0 };
 
-        init(data) {
-            this.levelConfig = (data && data.levelConfig) ? data.levelConfig : null;
-            this.model = null;
+    function init3DGame() {
+        const container = document.getElementById('canvas-container');
+        const width = window.innerWidth;
+        const height = window.innerHeight;
 
-            this.plateViews = new Map();
-            this.screwViews = new Map();
-            this.emptyHoleViews = new Map();
-            this.boxViews = [];
-            this.backupHoleViews = [];
-            this.isInputLocked = false;
-        }
+        scene = new THREE.Scene();
 
-        create() {
-            if (!this.levelConfig) return;
+        camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
+        camera.position.set(0, 3.2, 5.5);
+        camera.lookAt(0, 0.2, 0);
 
-            this.model = new UnscrewGameModel(this.levelConfig);
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(width, height);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        container.appendChild(renderer.domElement);
 
-            this.createWorkbenchBackground();
-            this.createTopHeader();
-            this.createBoardArea();
-            this.renderEmptyHoles();
-            this.renderPlates();
-            this.renderScrews();
-            this.renderActiveBoxes();
-            this.renderBackupHolesTray();
+        raycaster = new THREE.Raycaster();
+        mouse = new THREE.Vector2();
 
-            this.bindModelEvents();
-        }
+        scene.add(new THREE.AmbientLight(0xffffff, 0.75));
 
-        createWorkbenchBackground() {
-            const { width, height } = this.scale;
-            this.add.rectangle(width / 2, height / 2, width, height, 0x1A1C23).setDepth(-100);
+        const dirLight = new THREE.DirectionalLight(0xfffbeb, 0.85);
+        dirLight.position.set(5, 10, 7);
+        dirLight.castShadow = true;
+        scene.add(dirLight);
 
-            const gridGraphics = this.add.graphics().setDepth(-90);
-            gridGraphics.fillStyle(0x0E1015, 0.7);
-            for (let x = 20; x < width; x += 30) {
-                for (let y = 160; y < height - 120; y += 30) {
-                    gridGraphics.fillCircle(x, y, 2.5);
+        const rimLight = new THREE.DirectionalLight(0xdbeafe, 0.4);
+        rimLight.position.set(-5, 4, -5);
+        scene.add(rimLight);
+
+        stateMachine = new StateMachine(LEVEL_CONFIG);
+
+        buildToyCottageModel();
+        renderUIBoxes();
+        renderUIBackupTray();
+        setupInteractionListeners();
+
+        window.addEventListener('resize', onWindowResize);
+        animate();
+    }
+
+    function buildToyCottageModel() {
+        modelGroup = new THREE.Group();
+        scene.add(modelGroup);
+
+        // Pedestal
+        const pedestal = new THREE.Mesh(
+            new THREE.CylinderGeometry(2.3, 2.4, 0.25, 40),
+            new THREE.MeshStandardMaterial({ color: 0x86efac, roughness: 0.5 })
+        );
+        pedestal.position.y = -0.9;
+        pedestal.receiveShadow = true;
+        modelGroup.add(pedestal);
+
+        // Cottage Body
+        const body = new THREE.Mesh(
+            new THREE.BoxGeometry(2.0, 1.5, 2.0),
+            new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.4 })
+        );
+        body.position.y = 0.0;
+        body.castShadow = true;
+        body.receiveShadow = true;
+        modelGroup.add(body);
+
+        // Roof
+        const roof = new THREE.Mesh(
+            new THREE.ConeGeometry(1.8, 1.2, 4),
+            new THREE.MeshStandardMaterial({ color: 0xf97316, roughness: 0.35 })
+        );
+        roof.position.y = 1.35;
+        roof.rotation.y = Math.PI / 4;
+        roof.scale.set(1.1, 1.0, 1.1);
+        roof.castShadow = true;
+        modelGroup.add(roof);
+
+        // Chimney
+        const chimney = new THREE.Mesh(
+            new THREE.BoxGeometry(0.35, 0.8, 0.35),
+            new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.6 })
+        );
+        chimney.position.set(0.45, 1.7, -0.4);
+        chimney.castShadow = true;
+        modelGroup.add(chimney);
+
+        // Door
+        const door = new THREE.Mesh(
+            new THREE.BoxGeometry(0.5, 0.75, 0.06),
+            new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.5 })
+        );
+        door.position.set(0, -0.38, 1.03);
+        modelGroup.add(door);
+
+        // Windows
+        const windowGeo = new THREE.BoxGeometry(0.45, 0.45, 0.05);
+        const windowMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.2 });
+
+        const winF1 = new THREE.Mesh(windowGeo, windowMat); winF1.position.set(-0.65, 0.3, 1.03);
+        const winF2 = new THREE.Mesh(windowGeo, windowMat); winF2.position.set(0.65, 0.3, 1.03);
+        modelGroup.add(winF1, winF2);
+
+        const winL = new THREE.Mesh(windowGeo, windowMat); winL.position.set(-1.03, 0.3, 0); winL.rotation.y = Math.PI / 2;
+        const winR = new THREE.Mesh(windowGeo, windowMat); winR.position.set(1.03, 0.3, 0); winR.rotation.y = Math.PI / 2;
+        modelGroup.add(winL, winR);
+
+        const winB1 = new THREE.Mesh(windowGeo, windowMat); winB1.position.set(-0.6, 0.3, -1.03);
+        const winB2 = new THREE.Mesh(windowGeo, windowMat); winB2.position.set(0.6, 0.3, -1.03);
+        modelGroup.add(winB1, winB2);
+
+        // Screws
+        LEVEL_CONFIG.screws.forEach(sData => {
+            const screwMesh = create3DScrewMesh(sData.color);
+            screwMesh.position.set(sData.x, sData.y, sData.z);
+            const normal = new THREE.Vector3(sData.nx, sData.ny, sData.nz).normalize();
+            screwMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal);
+            screwMesh.userData = { screwId: sData.id, color: sData.color, normal };
+            modelGroup.add(screwMesh);
+            screwMeshMap.set(sData.id, screwMesh);
+        });
+    }
+
+    function create3DScrewMesh(hexColor) {
+        const group = new THREE.Group();
+
+        const ring = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.18, 0.18, 0.08, 24).rotateX(Math.PI / 2),
+            new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.85, roughness: 0.2 })
+        );
+        ring.castShadow = true;
+        group.add(ring);
+
+        const cap = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.14, 0.14, 0.09, 24).rotateX(Math.PI / 2),
+            new THREE.MeshStandardMaterial({ color: parseInt(hexColor.replace('#', '0x'), 16), metalness: 0.3, roughness: 0.3 })
+        );
+        group.add(cap);
+
+        const slitMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 });
+        const slitH = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.035, 0.095), slitMat);
+        const slitV = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.16, 0.095), slitMat);
+        group.add(slitH, slitV);
+
+        return group;
+    }
+
+    function renderUIBoxes() {
+        const container = document.getElementById('boxes-container');
+        container.innerHTML = '';
+        stateMachine.activeBoxes.forEach((box, idx) => {
+            const card = document.createElement('div');
+            card.className = 'box-card';
+            card.id = `box-ui-${idx}`;
+            card.style.borderColor = box.color;
+            for (let i = 0; i < 3; i++) {
+                const socket = document.createElement('div');
+                socket.className = 'box-socket';
+                if (i < box.screws.length) {
+                    socket.classList.add('filled');
+                    socket.style.backgroundColor = box.color;
                 }
+                card.appendChild(socket);
             }
-        }
+            container.appendChild(card);
+        });
+    }
 
-        createTopHeader() {
-            const { width } = this.scale;
-
-            const headerBar = this.add.container(width / 2, 40).setDepth(200);
-            const barBg = this.add.rectangle(0, 0, width - 24, 52, 0x222530, 0.95);
-            barBg.setStrokeStyle(2, 0x3A3E4E);
-
-            const levelText = this.add.text(-width / 2 + 36, 0, 'LEVEL 1', {
-                fontSize: '18px',
-                fontStyle: 'bold',
-                fontFamily: 'system-ui, sans-serif',
-                color: '#F3F4F6'
-            }).setOrigin(0, 0.5);
-
-            const badgeBg = this.add.rectangle(width / 2 - 80, 0, 100, 32, 0x111318, 0.9);
-            badgeBg.setStrokeStyle(1.5, 0x4F46E5);
-            const badgeText = this.add.text(width / 2 - 80, 0, 'UNSCREW', {
-                fontSize: '13px',
-                fontStyle: 'bold',
-                fontFamily: 'system-ui, sans-serif',
-                color: '#A5B4FC'
-            }).setOrigin(0.5);
-
-            headerBar.add([barBg, levelText, badgeBg, badgeText]);
-        }
-
-        createBoardArea() {
-            this.boardContainer = this.add.container(0, 0).setDepth(10);
-            this.boxContainer = this.add.container(0, 105).setDepth(50);
-            this.backupContainer = this.add.container(0, this.scale.height - 75).setDepth(50);
-        }
-
-        renderEmptyHoles() {
-            for (const screw of this.model.screws.values()) {
-                const hole = this.add.container(screw.x, screw.y).setDepth(1);
-                const ring = this.add.circle(0, 0, 16, 0x111317);
-                ring.setStrokeStyle(2, 0x333742);
-                const inner = this.add.circle(0, 1, 12, 0x07080A);
-                hole.add([ring, inner]);
-                this.boardContainer.add(hole);
-                this.emptyHoleViews.set(screw.id, hole);
+    function renderUIBackupTray() {
+        const tray = document.getElementById('backup-tray');
+        tray.innerHTML = '';
+        stateMachine.backupHoles.forEach((hole, idx) => {
+            const slot = document.createElement('div');
+            slot.className = 'hole-slot';
+            slot.id = `hole-ui-${idx}`;
+            if (!hole.isUnlocked) {
+                slot.classList.add('locked');
+            } else if (hole.screwId) {
+                const screwElem = document.createElement('div');
+                screwElem.className = 'hole-screw';
+                screwElem.style.backgroundColor = hole.color;
+                slot.appendChild(screwElem);
             }
-        }
+            tray.appendChild(slot);
+        });
+    }
 
-        renderPlates() {
-            for (const [id, plateData] of this.model.plates.entries()) {
-                const plate = this.add.container(plateData.x, plateData.y);
-                const w = plateData.width;
-                const h = plateData.height;
+    function setupInteractionListeners() {
+        const container = document.getElementById('canvas-container');
 
-                const shadow = this.add.rectangle(4, 8, w, h, 0x000000, 0.35);
+        const onPointerDown = (e) => {
+            isDragging = true;
+            const x = e.clientX || (e.touches && e.touches[0].clientX);
+            const y = e.clientY || (e.touches && e.touches[0].clientY);
+            previousPointerX = x;
+            pointerDownStartPos = { x, y };
+        };
 
-                const isMetal = plateData.layer > 0;
-                const mainColor = isMetal ? 0x94A3B8 : (plateData.color || 0x8C5A3C);
-                const borderColor = isMetal ? 0xCBD5E1 : 0x5C3A21;
+        const onPointerMove = (e) => {
+            if (!isDragging) return;
+            const x = e.clientX || (e.touches && e.touches[0].clientX);
+            const deltaX = x - previousPointerX;
+            previousPointerX = x;
+            targetRotationY += deltaX * 0.008;
 
-                const body = this.add.rectangle(0, 0, w, h, mainColor, 1.0);
-                body.setStrokeStyle(3, borderColor);
+            const hint = document.getElementById('rotate-hint');
+            if (hint) hint.style.opacity = '0';
+        };
 
-                const highlight = this.add.rectangle(0, -h / 2 + 3, w - 6, 3, 0xFFFFFF, 0.25);
-                const shade = this.add.rectangle(0, h / 2 - 3, w - 6, 3, 0x000000, 0.25);
+        const onPointerUp = (e) => {
+            if (!isDragging) return;
+            isDragging = false;
+            const endX = e.clientX || (e.changedTouches && e.changedTouches[0].clientX) || previousPointerX;
+            const endY = e.clientY || (e.changedTouches && e.changedTouches[0].clientY) || pointerDownStartPos.y;
+            const dist = Math.hypot(endX - pointerDownStartPos.x, endY - pointerDownStartPos.y);
 
-                plate.add([shadow, body, highlight, shade]);
-
-                if (plateData.requiredScrewIds) {
-                    for (const sId of plateData.requiredScrewIds) {
-                        const s = this.model.screws.get(sId);
-                        if (s) {
-                            const localX = s.x - plateData.x;
-                            const localY = s.y - plateData.y;
-                            const holeCutout = this.add.circle(localX, localY, 15, 0x15161C);
-                            holeCutout.setStrokeStyle(2, borderColor, 0.8);
-                            plate.add(holeCutout);
-                        }
-                    }
-                }
-
-                plate.setDepth(plateData.layer * 10 + 5);
-                this.boardContainer.add(plate);
-                this.plateViews.set(id, { container: plate, data: plateData });
+            if (dist < 8) {
+                handleTapAt(endX, endY);
             }
-        }
+        };
 
-        renderScrews() {
-            for (const [id, screwData] of this.model.screws.entries()) {
-                const screw = this.add.container(screwData.x, screwData.y);
-                const colorInt = parseInt(screwData.color.replace('#', '0x'), 16);
+        container.addEventListener('mousedown', onPointerDown);
+        window.addEventListener('mousemove', onPointerMove);
+        window.addEventListener('mouseup', onPointerUp);
 
-                const shadow = this.add.circle(2, 4, 18, 0x000000, 0.4);
-                const chromeRing = this.add.circle(0, 0, 18, 0xE2E8F0);
-                chromeRing.setStrokeStyle(2, 0x64748B);
+        container.addEventListener('touchstart', onPointerDown, { passive: false });
+        window.addEventListener('touchmove', onPointerMove, { passive: false });
+        window.addEventListener('touchend', onPointerUp);
+    }
 
-                const enamel = this.add.circle(0, 0, 14, colorInt);
-                const specHighlight = this.add.circle(-4, -4, 6, 0xFFFFFF, 0.4);
+    function handleTapAt(screenX, screenY) {
+        mouse.x = (screenX / window.innerWidth) * 2 - 1;
+        mouse.y = -(screenY / window.innerHeight) * 2 + 1;
 
-                const slitH = this.add.rectangle(0, 0, 14, 4, 0x1E293B);
-                const slitV = this.add.rectangle(0, 0, 4, 14, 0x1E293B);
+        raycaster.setFromCamera(mouse, camera);
+        const screwMeshes = Array.from(screwMeshMap.values());
+        const intersects = raycaster.intersectObjects(screwMeshes, true);
 
-                screw.add([shadow, chromeRing, enamel, specHighlight, slitH, slitV]);
-                screw.setSize(44, 44);
-                screw.setInteractive({ useHandCursor: true });
-                screw.setDepth(screwData.layer * 10 + 12);
-
-                screw.on('pointerdown', () => this.onScrewTapped(id));
-
-                this.boardContainer.add(screw);
-                this.screwViews.set(id, {
-                    container: screw,
-                    data: screwData
-                });
+        if (intersects.length > 0) {
+            let obj = intersects[0].object;
+            while (obj && !obj.userData.screwId && obj.parent) {
+                obj = obj.parent;
             }
-        }
-
-        renderActiveBoxes() {
-            this.boxViews = [];
-            const { width } = this.scale;
-            const slotWidth = 140;
-            const startX = width / 2 - ((this.model.unlockedActiveBoxes - 1) * slotWidth) / 2;
-
-            for (let i = 0; i < this.model.unlockedActiveBoxes; i++) {
-                const boxX = startX + i * slotWidth;
-                const activeBox = this.model.activeBoxes[i];
-                const boxView = this.createDeluxeBox(boxX, 0, activeBox, i);
-                this.boxContainer.add(boxView.container);
-                this.boxViews.push(boxView);
+            if (obj && obj.userData && obj.userData.screwId) {
+                onScrewSelected(obj.userData.screwId, obj);
             }
-        }
-
-        createDeluxeBox(x, y, activeBoxData, index) {
-            const container = this.add.container(x, y);
-            const colorInt = activeBoxData
-                ? parseInt(activeBoxData.color.replace('#', '0x'), 16)
-                : 0x475569;
-
-            const shellBg = this.add.rectangle(0, 0, 126, 68, 0x1E222D, 0.98);
-            shellBg.setStrokeStyle(3.5, colorInt);
-
-            const headerStrip = this.add.rectangle(0, -28, 122, 6, colorInt);
-
-            const slotIndicators = [];
-            for (let s = -1; s <= 1; s++) {
-                const socketBg = this.add.circle(s * 36, 6, 15, 0x0F1117);
-                socketBg.setStrokeStyle(2, 0x334155);
-
-                const socketInner = this.add.circle(s * 36, 6, 11, 0x07080B);
-                container.add([socketBg, socketInner]);
-                slotIndicators.push(socketInner);
-            }
-
-            const glassShine = this.add.rectangle(-25, 0, 30, 64, 0xFFFFFF, 0.04);
-            glassShine.angle = -20;
-
-            container.add([shellBg, headerStrip, glassShine]);
-
-            return {
-                container,
-                shellBg,
-                slotIndicators,
-                boxData: activeBoxData,
-                index
-            };
-        }
-
-        renderBackupHolesTray() {
-            this.backupHoleViews = [];
-            const { width } = this.scale;
-
-            const trayW = width - 24;
-            const trayBg = this.add.rectangle(width / 2, 0, trayW, 64, 0x1A1C24, 0.95);
-            trayBg.setStrokeStyle(2, 0x333846);
-            this.backupContainer.add(trayBg);
-
-            const holeSpacing = 44;
-            const startX = width / 2 - ((this.model.maxBackupHoles - 1) * holeSpacing) / 2;
-
-            for (let i = 0; i < this.model.maxBackupHoles; i++) {
-                const hX = startX + i * holeSpacing;
-                const slot = this.model.backupHoles[i];
-                const holeContainer = this.add.container(hX, 0);
-
-                const socket = this.add.circle(0, 0, 18, slot.isUnlocked ? 0x0F1117 : 0x15161C);
-                socket.setStrokeStyle(2, slot.isUnlocked ? 0x475569 : 0x242834);
-
-                let lockIcon = null;
-                if (!slot.isUnlocked) {
-                    lockIcon = this.add.text(0, 0, '🔒', { fontSize: '14px' }).setOrigin(0.5);
-                    holeContainer.add(lockIcon);
-                }
-
-                holeContainer.add([socket]);
-                this.backupContainer.add(holeContainer);
-
-                this.backupHoleViews.push({
-                    container: holeContainer,
-                    slotIndex: i,
-                    worldPosition: () => ({
-                        x: this.backupContainer.x + holeContainer.x,
-                        y: this.backupContainer.y + holeContainer.y
-                    })
-                });
-            }
-        }
-
-        onScrewTapped(screwId) {
-            if (this.isInputLocked) return;
-            this.model.handleScrewTap(screwId);
-        }
-
-        bindModelEvents() {
-            this.model.on('SCREW_MOVED_TO_BOX', data => {
-                SoundFX.playUnscrew();
-                this.animateScrewToBox(data);
-            });
-            this.model.on('SCREW_MOVED_TO_BACKUP', data => {
-                SoundFX.playUnscrew();
-                this.animateScrewToBackup(data);
-            });
-            this.model.on('SCREW_PULLED_FROM_BACKUP', data => {
-                SoundFX.playChime();
-                this.animateScrewFromBackupToBox(data);
-            });
-            this.model.on('PLATE_PENDULUM_SWING', data => {
-                SoundFX.playThud();
-                this.animatePendulumSwing(data);
-            });
-            this.model.on('PLATE_DETACHED', data => {
-                SoundFX.playThud();
-                this.animatePlateFall(data.plateId);
-            });
-            this.model.on('BOX_COMPLETED', data => {
-                SoundFX.playBoxFilled();
-                this.animateBoxCompleted(data);
-            });
-            this.model.on('BOX_SPAWNED', data => this.animateBoxSpawned(data));
-            this.model.on('TAP_REJECTED', data => this.animateTapRejected(data));
-            this.model.on('GAME_OVER_WIN', data => {
-                SoundFX.playFanfare();
-                this.handleWin(data);
-            });
-            this.model.on('GAME_OVER_LOSS', data => this.handleLoss(data));
-        }
-
-        animateScrewToBox(data) {
-            const screwView = this.screwViews.get(data.screwId);
-            if (!screwView) return;
-
-            const boxView = this.boxViews[data.boxIndex];
-            const slotIndex = data.currentScrewsInBox - 1;
-            const slotOffset = (slotIndex - 1) * 36;
-
-            const targetX = this.boxContainer.x + boxView.container.x + slotOffset;
-            const targetY = this.boxContainer.y + boxView.container.y + 6;
-
-            this.cameras.main.shake(60, 0.003);
-
-            this.tweens.add({
-                targets: screwView.container,
-                angle: -720,
-                scale: 1.4,
-                duration: 180,
-                ease: 'Quad.easeOut',
-                onComplete: () => {
-                    this.tweens.add({
-                        targets: screwView.container,
-                        x: targetX,
-                        y: targetY,
-                        scale: 0.85,
-                        duration: 320,
-                        ease: 'Cubic.easeInOut',
-                        onComplete: () => {
-                            SoundFX.playChime();
-                            this.tweens.add({
-                                targets: screwView.container,
-                                scale: 0.95,
-                                duration: 80,
-                                yoyo: true
-                            });
-                        }
-                    });
-                }
-            });
-        }
-
-        animateScrewToBackup(data) {
-            const screwView = this.screwViews.get(data.screwId);
-            const holeView = this.backupHoleViews[data.holeIndex];
-            if (!screwView || !holeView) return;
-
-            const targetPos = holeView.worldPosition();
-            this.cameras.main.shake(60, 0.003);
-
-            this.tweens.add({
-                targets: screwView.container,
-                angle: -720,
-                scale: 1.4,
-                duration: 180,
-                ease: 'Quad.easeOut',
-                onComplete: () => {
-                    this.tweens.add({
-                        targets: screwView.container,
-                        x: targetPos.x,
-                        y: targetPos.y,
-                        scale: 0.85,
-                        duration: 340,
-                        ease: 'Cubic.easeInOut'
-                    });
-                }
-            });
-        }
-
-        animateScrewFromBackupToBox(data) {
-            const screwView = this.screwViews.get(data.screwId);
-            const boxView = this.boxViews[data.boxIndex];
-            if (!screwView || !boxView) return;
-
-            const slotIndex = data.currentScrewsInBox - 1;
-            const slotOffset = (slotIndex - 1) * 36;
-            const targetX = this.boxContainer.x + boxView.container.x + slotOffset;
-            const targetY = this.boxContainer.y + boxView.container.y + 6;
-
-            this.tweens.add({
-                targets: screwView.container,
-                x: targetX,
-                y: targetY,
-                duration: 300,
-                delay: slotIndex * 80,
-                ease: 'Back.easeOut'
-            });
-        }
-
-        animatePendulumSwing(data) {
-            const plateView = this.plateViews.get(data.plateId);
-            if (!plateView) return;
-
-            const plate = plateView.container;
-            const swingAngle = plate.x > data.pivotX ? 22 : -22;
-
-            this.tweens.add({
-                targets: plate,
-                angle: swingAngle,
-                duration: 600,
-                ease: 'Elastic.easeOut'
-            });
-        }
-
-        animatePlateFall(plateId) {
-            const plateView = this.plateViews.get(plateId);
-            if (!plateView) return;
-
-            const plate = plateView.container;
-            const randomTilt = (Math.random() * 60) - 30;
-
-            this.tweens.add({
-                targets: plate,
-                y: plate.y + 550,
-                angle: plate.angle + randomTilt,
-                alpha: 0,
-                duration: 650,
-                ease: 'Quad.easeIn',
-                onComplete: () => { plate.destroy(); }
-            });
-        }
-
-        animateBoxCompleted(data) {
-            const boxView = this.boxViews[data.boxIndex];
-            if (!boxView) return;
-
-            this.tweens.add({
-                targets: boxView.container,
-                scaleX: 1.18,
-                scaleY: 1.18,
-                duration: 160,
-                yoyo: true,
-                onComplete: () => {
-                    this.tweens.add({
-                        targets: boxView.container,
-                        x: -250,
-                        alpha: 0,
-                        duration: 340,
-                        ease: 'Back.easeIn',
-                        onComplete: () => { boxView.container.destroy(); }
-                    });
-                }
-            });
-        }
-
-        animateBoxSpawned(data) {
-            const { width } = this.scale;
-            const slotWidth = 140;
-            const startX = width / 2 - ((this.model.unlockedActiveBoxes - 1) * slotWidth) / 2;
-            const targetX = startX + data.boxIndex * slotWidth;
-
-            const activeBoxData = this.model.activeBoxes[data.boxIndex];
-            const newBoxView = this.createDeluxeBox(width + 160, 0, activeBoxData, data.boxIndex);
-            this.boxContainer.add(newBoxView.container);
-            this.boxViews[data.boxIndex] = newBoxView;
-
-            this.tweens.add({
-                targets: newBoxView.container,
-                x: targetX,
-                duration: 380,
-                ease: 'Back.easeOut'
-            });
-        }
-
-        animateTapRejected(data) {
-            const screwView = this.screwViews.get(data.screwId);
-            if (!screwView) return;
-
-            const origX = screwView.container.x;
-            this.tweens.add({
-                targets: screwView.container,
-                x: origX - 7,
-                duration: 40,
-                yoyo: true,
-                repeat: 3,
-                onComplete: () => { screwView.container.x = origX; }
-            });
-        }
-
-        handleWin() {
-            const { width, height } = this.scale;
-            this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.75).setDepth(999);
-            const dialog = this.add.container(width / 2, height / 2).setDepth(1000).setScale(0);
-
-            const card = this.add.rectangle(0, 0, 300, 240, 0x1E222D, 1);
-            card.setStrokeStyle(3, 0x10B981);
-
-            const star = this.add.text(0, -60, '⭐ ⭐ ⭐', { fontSize: '28px' }).setOrigin(0.5);
-            const title = this.add.text(0, -10, 'VICTORY!', {
-                fontSize: '26px',
-                fontStyle: 'bold',
-                fontFamily: 'system-ui, sans-serif',
-                color: '#10B981'
-            }).setOrigin(0.5);
-
-            const sub = this.add.text(0, 25, 'All screws cleared!', {
-                fontSize: '15px',
-                fontFamily: 'system-ui, sans-serif',
-                color: '#94A3B8'
-            }).setOrigin(0.5);
-
-            const btn = this.add.rectangle(0, 75, 180, 42, 0x10B981).setInteractive({ useHandCursor: true });
-            const btnText = this.add.text(0, 75, 'PLAY AGAIN', {
-                fontSize: '16px',
-                fontStyle: 'bold',
-                fontFamily: 'system-ui, sans-serif',
-                color: '#FFFFFF'
-            }).setOrigin(0.5);
-
-            btn.on('pointerdown', () => {
-                this.scene.restart({ levelConfig: this.levelConfig });
-            });
-
-            dialog.add([card, star, title, sub, btn, btnText]);
-
-            this.tweens.add({
-                targets: dialog,
-                scale: 1,
-                duration: 400,
-                ease: 'Back.easeOut'
-            });
-        }
-
-        handleLoss() {
-            const { width, height } = this.scale;
-            this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.75).setDepth(999);
-            const dialog = this.add.container(width / 2, height / 2).setDepth(1000).setScale(0);
-
-            const card = this.add.rectangle(0, 0, 300, 220, 0x1E222D, 1);
-            card.setStrokeStyle(3, 0xEF4444);
-
-            const title = this.add.text(0, -50, 'OUT OF MOVES!', {
-                fontSize: '24px',
-                fontStyle: 'bold',
-                fontFamily: 'system-ui, sans-serif',
-                color: '#EF4444'
-            }).setOrigin(0.5);
-
-            const sub = this.add.text(0, -10, 'Holes are full & no open boxes match.', {
-                fontSize: '13px',
-                align: 'center',
-                wordWrap: { width: 250 },
-                fontFamily: 'system-ui, sans-serif',
-                color: '#94A3B8'
-            }).setOrigin(0.5);
-
-            const btn = this.add.rectangle(0, 60, 160, 42, 0xEF4444).setInteractive({ useHandCursor: true });
-            const btnText = this.add.text(0, 60, 'RETRY', {
-                fontSize: '16px',
-                fontStyle: 'bold',
-                fontFamily: 'system-ui, sans-serif',
-                color: '#FFFFFF'
-            }).setOrigin(0.5);
-
-            btn.on('pointerdown', () => {
-                this.scene.restart({ levelConfig: this.levelConfig });
-            });
-
-            dialog.add([card, title, sub, btn, btnText]);
-
-            this.tweens.add({
-                targets: dialog,
-                scale: 1,
-                duration: 400,
-                ease: 'Back.easeOut'
-            });
         }
     }
 
-    /**
-     * ------------------------------------------------------------------------
-     * 4. SAMPLE PUZZLE LEVEL DESIGN
-     * ------------------------------------------------------------------------
-     */
-    const SampleLevel = {
-        levelId: 'level_01',
-        initialActiveBoxes: 2,
-        maxActiveBoxes: 4,
-        initialBackupHoles: 5,
-        maxBackupHoles: 7,
+    function onScrewSelected(screwId, mesh) {
+        const result = stateMachine.tapScrew(screwId);
+        if (!result) return;
 
-        boxQueue: ['#FF3B30', '#34C759', '#007AFF', '#FBBF24'],
+        if (result.action === 'TO_BOX') {
+            Sound.playRatchet();
+            animate3DUnscrew(mesh, () => {
+                Sound.playPop();
+                renderUIBoxes();
+                if (result.boxCompleted) {
+                    Sound.playBoxComplete();
+                    const boxCard = document.getElementById(`box-ui-${result.boxIndex}`);
+                    if (boxCard) {
+                        boxCard.style.transform = 'scale(1.15)';
+                        setTimeout(() => {
+                            boxCard.style.transform = 'scale(0) translateX(-100px)';
+                            setTimeout(() => {
+                                stateMachine.onBoxCompleted(result.boxIndex);
+                                renderUIBoxes();
+                                renderUIBackupTray();
+                                checkGameEnd();
+                            }, 250);
+                        }, 200);
+                    }
+                } else {
+                    checkGameEnd();
+                }
+            });
+        } else if (result.action === 'TO_BACKUP') {
+            Sound.playRatchet();
+            animate3DUnscrew(mesh, () => {
+                Sound.playPop();
+                renderUIBackupTray();
+                checkGameEnd();
+            });
+        } else if (result.action === 'BLOCKED') {
+            new TWEEN.Tween(mesh.position)
+                .to({ x: mesh.position.x + 0.05 }, 40)
+                .yoyo(true)
+                .repeat(3)
+                .start();
+        }
+    }
 
-        plates: [
-            {
-                id: 'plank_wood_bottom',
-                x: 190,
-                y: 330,
-                width: 260,
-                height: 80,
-                layer: 0,
-                color: 0x8C5A3C,
-                requiredScrewIds: ['screw_r1', 'screw_r2']
-            },
-            {
-                id: 'plank_metal_top',
-                x: 190,
-                y: 330,
-                width: 170,
-                height: 60,
-                layer: 1,
-                color: 0x94A3B8,
-                requiredScrewIds: ['screw_g1', 'screw_g2']
-            }
-        ],
+    function animate3DUnscrew(mesh, onComplete) {
+        const normal = mesh.userData.normal;
+        const targetOutPos = mesh.position.clone().add(normal.clone().multiplyScalar(0.75));
 
-        screws: [
-            { id: 'screw_g1', color: '#34C759', x: 145, y: 330, layer: 1, boundPlateIds: ['plank_metal_top'] },
-            { id: 'screw_g2', color: '#34C759', x: 235, y: 330, layer: 1, boundPlateIds: ['plank_metal_top'] },
-            { id: 'screw_g3', color: '#34C759', x: 305, y: 230, layer: 0, boundPlateIds: [] },
+        new TWEEN.Tween(mesh.position).to(targetOutPos, 220).easing(TWEEN.Easing.Quadratic.Out).start();
+        new TWEEN.Tween(mesh.rotation).to({ z: mesh.rotation.z - Math.PI * 4 }, 220).easing(TWEEN.Easing.Quadratic.Out).start();
+        new TWEEN.Tween(mesh.scale).to({ x: 0.1, y: 0.1, z: 0.1 }, 240).easing(TWEEN.Easing.Cubic.In).onComplete(() => {
+            mesh.visible = false;
+            if (onComplete) onComplete();
+        }).start();
+    }
 
-            { id: 'screw_r1', color: '#FF3B30', x: 90,  y: 330, layer: 0, boundPlateIds: ['plank_wood_bottom'] },
-            { id: 'screw_r2', color: '#FF3B30', x: 290, y: 330, layer: 0, boundPlateIds: ['plank_wood_bottom'] },
-            { id: 'screw_r3', color: '#FF3B30', x: 75,  y: 230, layer: 0, boundPlateIds: [] },
+    function checkGameEnd() {
+        if (stateMachine.checkWin()) {
+            Sound.playWinFanfare();
+            showModal(true);
+        } else if (stateMachine.checkLoss()) {
+            showModal(false);
+        }
+    }
 
-            { id: 'screw_b1', color: '#007AFF', x: 130, y: 440, layer: 0, boundPlateIds: [] },
-            { id: 'screw_b2', color: '#007AFF', x: 190, y: 440, layer: 0, boundPlateIds: [] },
-            { id: 'screw_b3', color: '#007AFF', x: 250, y: 440, layer: 0, boundPlateIds: [] },
+    function showModal(isWin) {
+        const modal = document.getElementById('modal-overlay');
+        const icon = document.getElementById('modal-icon');
+        const title = document.getElementById('modal-title');
+        const desc = document.getElementById('modal-desc');
+        const btn = document.getElementById('modal-btn');
 
-            { id: 'screw_y1', color: '#FBBF24', x: 130, y: 510, layer: 0, boundPlateIds: [] },
-            { id: 'screw_y2', color: '#FBBF24', x: 190, y: 510, layer: 0, boundPlateIds: [] },
-            { id: 'screw_y3', color: '#FBBF24', x: 250, y: 510, layer: 0, boundPlateIds: [] }
-        ]
-    };
+        if (isWin) {
+            icon.innerText = '⭐ ⭐ ⭐';
+            title.innerText = 'STAGE CLEARED!';
+            title.style.color = '#10b981';
+            desc.innerText = 'You successfully unscrewed the entire 3D cottage!';
+            btn.innerText = 'PLAY AGAIN';
+            btn.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+        } else {
+            icon.innerText = '💥';
+            title.innerText = 'OUT OF SLOTS!';
+            title.style.color = '#ef4444';
+            desc.innerText = 'Backup tray is full and no visible screws match active boxes.';
+            btn.innerText = 'TRY AGAIN';
+            btn.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+        }
+        modal.classList.add('active');
+    }
 
-    return {
-        LevelValidator,
-        UnscrewGameModel,
-        UnscrewPuzzleScene,
-        SampleLevel
-    };
-}));
+    function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    function animate(time) {
+        requestAnimationFrame(animate);
+        currentRotationY += (targetRotationY - currentRotationY) * 0.1;
+        if (modelGroup) {
+            modelGroup.rotation.y = currentRotationY;
+        }
+        TWEEN.update(time);
+        renderer.render(scene, camera);
+    }
+
+    window.addEventListener('DOMContentLoaded', init3DGame);
+})();
