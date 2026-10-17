@@ -5,118 +5,899 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
     <title>Unscrew Frenzy 3D</title>
     <style>
-        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            margin: 0;
+            padding: 0;
+        }
         body {
             background: linear-gradient(180deg, #dbeafe 0%, #bfdbfe 50%, #93c5fd 100%);
-            overflow: hidden; height: 100vh; width: 100vw;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
             touch-action: none;
         }
-        #canvas-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
         #ui-top {
-            position: absolute; top: 12px; left: 0; width: 100%;
-            display: flex; flex-direction: column; align-items: center; z-index: 10; pointer-events: none;
+            position: absolute;
+            top: 14px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 10;
+            pointer-events: none;
         }
+
         .level-badge {
-            background: rgba(255, 255, 255, 0.9); color: #1e3a8a; font-weight: 800; font-size: 15px;
-            padding: 4px 16px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.95);
+            color: #1e3a8a;
+            font-weight: 800;
+            font-size: 15px;
+            padding: 5px 18px;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
         }
-        .boxes-container { display: flex; gap: 12px; pointer-events: auto; }
-        .box-card {
-            width: 96px; height: 52px; background: #ffffff; border-radius: 14px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15); border: 3.5px solid #ccc;
-            display: flex; align-items: center; justify-content: space-evenly; padding: 4px 6px;
-            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        .box-socket {
-            width: 22px; height: 22px; border-radius: 50%; background: #e2e8f0;
-            border: 2px dashed #94a3b8; display: flex; align-items: center; justify-content: center;
-        }
-        .box-socket.filled { border: none; box-shadow: inset 0 2px 4px rgba(0,0,0,0.25); }
-        .box-socket.filled::after {
-            content: ''; width: 18px; height: 18px; border-radius: 50%;
-            background: inherit; box-shadow: 0 2px 5px rgba(0,0,0,0.3); border: 1.5px solid #fff;
-        }
-        #ui-bottom {
-            position: absolute; bottom: 24px; left: 0; width: 100%;
-            display: flex; flex-direction: column; align-items: center; z-index: 10; pointer-events: none;
-        }
-        .tray-hint {
-            font-size: 12px; font-weight: 700; color: #1e3a8a; opacity: 0.7; margin-bottom: 6px; text-transform: uppercase;
-        }
-        .backup-tray {
-            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(8px);
-            padding: 8px 14px; border-radius: 28px; display: flex; gap: 10px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.12); border: 2px solid rgba(255, 255, 255, 0.9);
+
+        .boxes-container {
+            display: flex;
+            gap: 12px;
             pointer-events: auto;
         }
-        .hole-slot {
-            width: 38px; height: 38px; border-radius: 50%; background: #cbd5e1;
-            box-shadow: inset 0 3px 6px rgba(0,0,0,0.3); border: 2.5px solid #94a3b8;
-            display: flex; align-items: center; justify-content: center;
+
+        .box-card {
+            width: 102px;
+            height: 56px;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            border: 3.5px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: space-evenly;
+            padding: 4px 8px;
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        .hole-slot.locked { background: #94a3b8; border-color: #64748b; }
-        .hole-slot.locked::before { content: '🔒'; font-size: 14px; }
-        .hole-screw {
-            width: 32px; height: 32px; border-radius: 50%; box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            border: 2px solid #ffffff; display: flex; align-items: center; justify-content: center;
+
+        .box-socket {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            border: 2px dashed #94a3b8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
         }
-        .hole-screw::after { content: '+'; color: rgba(255,255,255,0.9); font-size: 18px; font-weight: 900; margin-top: -2px; }
+
+        .box-socket.filled {
+            border: none;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .box-socket.filled::after {
+            content: '';
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: inherit;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+            border: 2px solid #ffffff;
+        }
+
         .rotate-hint {
-            position: absolute; bottom: 95px; left: 50%; transform: translateX(-50%);
-            background: rgba(15, 23, 42, 0.6); color: #ffffff; font-size: 12px; font-weight: 600;
-            padding: 5px 14px; border-radius: 16px; pointer-events: none; z-index: 10;
-            display: flex; align-items: center; gap: 6px; opacity: 0.85; transition: opacity 0.5s;
+            position: absolute;
+            bottom: 105px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.65);
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 6px 16px;
+            border-radius: 20px;
+            pointer-events: none;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            opacity: 0.9;
+            transition: opacity 0.5s;
         }
+
+        #ui-bottom {
+            position: absolute;
+            bottom: 24px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .tray-hint {
+            font-size: 12px;
+            font-weight: 800;
+            color: #1e3a8a;
+            opacity: 0.75;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .backup-tray {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 8px 16px;
+            border-radius: 32px;
+            display: flex;
+            gap: 10px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            pointer-events: auto;
+        }
+
+        .hole-slot {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #cbd5e1;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.3);
+            border: 2.5px solid #94a3b8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .hole-slot.locked {
+            background: #94a3b8;
+            border-color: #64748b;
+        }
+
+        .hole-slot.locked::before {
+            content: '🔒';
+            font-size: 14px;
+        }
+
+        .hole-screw {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            border: 2.5px solid #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hole-screw::after {
+            content: '+';
+            color: rgba(255,255,255,0.95);
+            font-size: 20px;
+            font-weight: 900;
+            margin-top: -2px;
+        }
+
         .modal-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);
-            display: flex; align-items: center; justify-content: center; z-index: 100;
-            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
         }
-        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
         .modal-card {
-            background: #ffffff; width: 300px; border-radius: 24px; padding: 24px;
-            text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.3); transform: scale(0.85);
+            background: #ffffff;
+            width: 310px;
+            border-radius: 26px;
+            padding: 26px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            transform: scale(0.85);
             transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        .modal-overlay.active .modal-card { transform: scale(1); }
-        .modal-stars { font-size: 36px; margin-bottom: 8px; }
-        .modal-title { font-size: 24px; font-weight: 900; color: #1e293b; margin-bottom: 6px; }
-        .modal-subtitle { font-size: 14px; color: #64748b; margin-bottom: 20px; }
+
+        .modal-overlay.active .modal-card {
+            transform: scale(1);
+        }
+
+        .modal-icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 900;
+            color: #1e293b;
+            margin-bottom: 6px;
+        }
+
+        .modal-subtitle {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 22px;
+            line-height: 1.4;
+        }
+
         .modal-btn {
             background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-            color: #ffffff; font-size: 16px; font-weight: 800; border: none;
-            padding: 12px 28px; border-radius: 30px; cursor: pointer;
-            box-shadow: 0 6px 16px rgba(29, 78, 216, 0.4); width: 100%;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 800;
+            border: none;
+            padding: 13px 28px;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 6px 16px rgba(29, 78, 216, 0.4);
+            width: 100%;
         }
     </style>
-    <!-- Three.js CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- Tween.js CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+
+    <!-- Reliable Three.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 </head>
 <body>
     <div id="canvas-container"></div>
+
+    <!-- Top Boxes HUD -->
     <div id="ui-top">
         <div class="level-badge">⭐ LEVEL 1</div>
         <div class="boxes-container" id="boxes-container"></div>
     </div>
+
+    <!-- Turntable Drag Hint -->
     <div class="rotate-hint" id="rotate-hint">
         <span>🔄</span> Drag horizontally to rotate 3D cottage
     </div>
+
+    <!-- Bottom Tray -->
     <div id="ui-bottom">
         <div class="tray-hint">Backup Tray</div>
         <div class="backup-tray" id="backup-tray"></div>
     </div>
+
+    <!-- Win / Loss Modal -->
     <div class="modal-overlay" id="modal-overlay">
         <div class="modal-card">
-            <div class="modal-stars" id="modal-icon">🏆</div>
+            <div class="modal-icon" id="modal-icon">🏆</div>
             <div class="modal-title" id="modal-title">VICTORY!</div>
-            <div class="modal-subtitle" id="modal-desc">All screws cleared from the 3D toy!</div>
+            <div class="modal-subtitle" id="modal-desc">All screws cleared from the 3D toy cottage!</div>
             <button class="modal-btn" id="modal-btn" onclick="location.reload()">PLAY AGAIN</button>
         </div>
     </div>
-    <script src="unscrew_puzzle_core.js"></script>
+
+    <!-- Embedded 3D Game Engine (Self-Contained) -->
+    <script>
+    (function () {
+        // --- 1. WEB AUDIO SYNTHESIZER ---
+        const Sound = {
+            ctx: null,
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) this.ctx = new AudioCtx();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            },
+            playRatchet() {
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                for (let i = 0; i < 4; i++) {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.type = 'triangle';
+                    const t = now + i * 0.035;
+                    osc.frequency.setValueAtTime(450 + i * 90, t);
+                    gain.gain.setValueAtTime(0.2, t);
+                    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.03);
+                    osc.start(t);
+                    osc.stop(t + 0.03);
+                }
+            },
+            playPop() {
+                this.init();
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.type = 'sine';
+                const now = this.ctx.currentTime;
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            },
+            playBoxComplete() {
+                this.init();
+                if (!this.ctx) return;
+                const notes = [523.25, 659.25, 783.99, 1046.5];
+                notes.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.type = 'triangle';
+                    const t = this.ctx.currentTime + idx * 0.07;
+                    osc.frequency.setValueAtTime(freq, t);
+                    gain.gain.setValueAtTime(0.25, t);
+                    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
+                    osc.start(t);
+                    osc.stop(t + 0.2);
+                });
+            },
+            playWinFanfare() {
+                this.init();
+                if (!this.ctx) return;
+                const notes = [523.25, 659.25, 783.99, 1046.5, 1318.5];
+                notes.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.type = 'sine';
+                    const t = this.ctx.currentTime + idx * 0.1;
+                    osc.frequency.setValueAtTime(freq, t);
+                    gain.gain.setValueAtTime(0.3, t);
+                    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.35);
+                    osc.start(t);
+                    osc.stop(t + 0.35);
+                });
+            }
+        };
+
+        // --- 2. LEVEL CONFIGURATION (12 Screws: 4 Colors x 3) ---
+        const LEVEL_CONFIG = {
+            initialActiveBoxes: 2,
+            maxActiveBoxes: 4,
+            initialBackupHoles: 5,
+            maxBackupHoles: 7,
+            boxQueue: ['#EF4444', '#3B82F6', '#10B981', '#F59E0B'],
+            screws: [
+                // Front (+Z: Red)
+                { id: 's_r1', color: '#EF4444', x: -0.65, y: 0.3, z: 1.05, nx: 0, ny: 0, nz: 1 },
+                { id: 's_r2', color: '#EF4444', x: 0.65,  y: 0.3, z: 1.05, nx: 0, ny: 0, nz: 1 },
+                { id: 's_r3', color: '#EF4444', x: 0.0,   y: -0.4, z: 1.05, nx: 0, ny: 0, nz: 1 },
+                // Left (-X: Blue)
+                { id: 's_b1', color: '#3B82F6', x: -1.05, y: 0.3, z: -0.5, nx: -1, ny: 0, nz: 0 },
+                { id: 's_b2', color: '#3B82F6', x: -1.05, y: 0.3, z: 0.5,  nx: -1, ny: 0, nz: 0 },
+                { id: 's_b3', color: '#3B82F6', x: -0.85, y: 1.25, z: 0.0, nx: -0.7, ny: 0.7, nz: 0 },
+                // Right (+X: Green)
+                { id: 's_g1', color: '#10B981', x: 1.05, y: 0.3, z: -0.5, nx: 1, ny: 0, nz: 0 },
+                { id: 's_g2', color: '#10B981', x: 1.05, y: 0.3, z: 0.5,  nx: 1, ny: 0, nz: 0 },
+                { id: 's_g3', color: '#10B981', x: 0.85, y: 1.25, z: 0.0, nx: 0.7, ny: 0.7, nz: 0 },
+                // Back (-Z: Yellow)
+                { id: 's_y1', color: '#F59E0B', x: -0.6, y: 0.3, z: -1.05, nx: 0, ny: 0, nz: -1 },
+                { id: 's_y2', color: '#F59E0B', x: 0.6,  y: 0.3, z: -1.05, nx: 0, ny: 0, nz: -1 },
+                { id: 's_y3', color: '#F59E0B', x: 0.45, y: 1.75, z: -0.4, nx: 0, ny: 0, nz: -1 }
+            ]
+        };
+
+        // --- 3. STATE MACHINE ---
+        class StateMachine {
+            constructor(config) {
+                this.config = config;
+                this.activeBoxes = [];
+                this.boxQueue = [...config.boxQueue];
+                this.backupHoles = [];
+                this.screws = new Map();
+                this.isGameOver = false;
+
+                for (let i = 0; i < config.maxBackupHoles; i++) {
+                    this.backupHoles.push({
+                        index: i,
+                        isUnlocked: i < config.initialBackupHoles,
+                        screwId: null,
+                        color: null
+                    });
+                }
+
+                for (const s of config.screws) {
+                    this.screws.set(s.id, { ...s, isRemoved: false });
+                }
+
+                while (this.activeBoxes.length < config.initialActiveBoxes && this.boxQueue.length > 0) {
+                    const color = this.boxQueue.shift();
+                    this.activeBoxes.push({
+                        id: 'b_' + Math.random().toString(36).substr(2, 5),
+                        color: color.toUpperCase(),
+                        capacity: 3,
+                        screws: []
+                    });
+                }
+            }
+
+            tapScrew(screwId) {
+                if (this.isGameOver) return null;
+                const screw = this.screws.get(screwId);
+                if (!screw || screw.isRemoved) return null;
+
+                const c = screw.color.toUpperCase();
+                const targetBoxIdx = this.activeBoxes.findIndex(b => b.color === c && b.screws.length < 3);
+
+                if (targetBoxIdx !== -1) {
+                    const box = this.activeBoxes[targetBoxIdx];
+                    screw.isRemoved = true;
+                    box.screws.push(screwId);
+                    return {
+                        action: 'TO_BOX',
+                        screwId,
+                        boxIndex: targetBoxIdx,
+                        boxCompleted: box.screws.length === 3
+                    };
+                }
+
+                const emptyHoleIdx = this.backupHoles.findIndex(h => h.isUnlocked && h.screwId === null);
+                if (emptyHoleIdx !== -1) {
+                    const hole = this.backupHoles[emptyHoleIdx];
+                    screw.isRemoved = true;
+                    hole.screwId = screwId;
+                    hole.color = c;
+                    return { action: 'TO_BACKUP', screwId, holeIndex: emptyHoleIdx };
+                }
+
+                return { action: 'BLOCKED' };
+            }
+
+            onBoxCompleted(boxIndex) {
+                this.activeBoxes.splice(boxIndex, 1);
+                let newBox = null;
+                if (this.boxQueue.length > 0) {
+                    const nextColor = this.boxQueue.shift().toUpperCase();
+                    newBox = {
+                        id: 'b_' + Math.random().toString(36).substr(2, 5),
+                        color: nextColor,
+                        capacity: 3,
+                        screws: []
+                    };
+                    this.activeBoxes.splice(boxIndex, 0, newBox);
+                }
+
+                if (newBox) {
+                    for (let i = 0; i < this.backupHoles.length; i++) {
+                        const hole = this.backupHoles[i];
+                        if (hole.isUnlocked && hole.screwId && hole.color === newBox.color && newBox.screws.length < 3) {
+                            newBox.screws.push(hole.screwId);
+                            hole.screwId = null;
+                            hole.color = null;
+                        }
+                    }
+                }
+            }
+
+            checkWin() {
+                for (const s of this.screws.values()) {
+                    if (!s.isRemoved) return false;
+                }
+                for (const h of this.backupHoles) {
+                    if (h.screwId !== null) return false;
+                }
+                return true;
+            }
+
+            checkLoss() {
+                const isBackupFull = this.backupHoles.filter(h => h.isUnlocked).every(h => h.screwId !== null);
+                if (!isBackupFull) return false;
+
+                const openColors = new Set(this.activeBoxes.filter(b => b.screws.length < 3).map(b => b.color));
+                for (const s of this.screws.values()) {
+                    if (!s.isRemoved && openColors.has(s.color.toUpperCase())) return false;
+                }
+                return true;
+            }
+        }
+
+        // --- 4. THREE.JS 3D WORLD ---
+        let scene, camera, renderer, modelGroup;
+        let screwMeshMap = new Map();
+        let stateMachine, raycaster, mouse;
+
+        let isDragging = false;
+        let previousPointerX = 0;
+        let targetRotationY = 0;
+        let currentRotationY = 0;
+        let pointerDownStartPos = { x: 0, y: 0 };
+
+        function init() {
+            const container = document.getElementById('canvas-container');
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+
+            scene = new THREE.Scene();
+
+            camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
+            camera.position.set(0, 3.2, 5.5);
+            camera.lookAt(0, 0.2, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            container.appendChild(renderer.domElement);
+
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+
+            // Lighting
+            scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+            const dirLight = new THREE.DirectionalLight(0xfffbeb, 0.85);
+            dirLight.position.set(5, 10, 7);
+            dirLight.castShadow = true;
+            scene.add(dirLight);
+
+            const rimLight = new THREE.DirectionalLight(0xdbeafe, 0.4);
+            rimLight.position.set(-5, 4, -5);
+            scene.add(rimLight);
+
+            stateMachine = new StateMachine(LEVEL_CONFIG);
+
+            buildCottage();
+            renderUIBoxes();
+            renderUIBackupTray();
+            setupEvents();
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            animate();
+        }
+
+        function buildCottage() {
+            modelGroup = new THREE.Group();
+            scene.add(modelGroup);
+
+            // Grassy Turntable Pedestal
+            const pedestal = new THREE.Mesh(
+                new THREE.CylinderGeometry(2.3, 2.4, 0.25, 40),
+                new THREE.MeshStandardMaterial({ color: 0x86efac, roughness: 0.5 })
+            );
+            pedestal.position.y = -0.9;
+            pedestal.receiveShadow = true;
+            modelGroup.add(pedestal);
+
+            // House Body
+            const body = new THREE.Mesh(
+                new THREE.BoxGeometry(2.0, 1.5, 2.0),
+                new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.4 })
+            );
+            body.position.y = 0.0;
+            body.castShadow = true;
+            modelGroup.add(body);
+
+            // Terracotta Roof
+            const roof = new THREE.Mesh(
+                new THREE.ConeGeometry(1.8, 1.2, 4),
+                new THREE.MeshStandardMaterial({ color: 0xf97316, roughness: 0.35 })
+            );
+            roof.position.y = 1.35;
+            roof.rotation.y = Math.PI / 4;
+            roof.scale.set(1.1, 1.0, 1.1);
+            roof.castShadow = true;
+            modelGroup.add(roof);
+
+            // Chimney
+            const chimney = new THREE.Mesh(
+                new THREE.BoxGeometry(0.35, 0.8, 0.35),
+                new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.6 })
+            );
+            chimney.position.set(0.45, 1.7, -0.4);
+            modelGroup.add(chimney);
+
+            // Front Door
+            const door = new THREE.Mesh(
+                new THREE.BoxGeometry(0.5, 0.75, 0.06),
+                new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.5 })
+            );
+            door.position.set(0, -0.38, 1.03);
+            modelGroup.add(door);
+
+            // Windows
+            const winMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.2 });
+            const winGeo = new THREE.BoxGeometry(0.45, 0.45, 0.05);
+
+            const winF1 = new THREE.Mesh(winGeo, winMat); winF1.position.set(-0.65, 0.3, 1.03);
+            const winF2 = new THREE.Mesh(winGeo, winMat); winF2.position.set(0.65, 0.3, 1.03);
+            modelGroup.add(winF1, winF2);
+
+            const winL = new THREE.Mesh(winGeo, winMat); winL.position.set(-1.03, 0.3, 0); winL.rotation.y = Math.PI / 2;
+            const winR = new THREE.Mesh(winGeo, winMat); winR.position.set(1.03, 0.3, 0); winR.rotation.y = Math.PI / 2;
+            modelGroup.add(winL, winR);
+
+            const winB1 = new THREE.Mesh(winGeo, winMat); winB1.position.set(-0.6, 0.3, -1.03);
+            const winB2 = new THREE.Mesh(winGeo, winMat); winB2.position.set(0.6, 0.3, -1.03);
+            modelGroup.add(winB1, winB2);
+
+            // 3D Screws
+            LEVEL_CONFIG.screws.forEach(sData => {
+                const screwMesh = createScrewMesh(sData.color);
+                screwMesh.position.set(sData.x, sData.y, sData.z);
+
+                const normal = new THREE.Vector3(sData.nx, sData.ny, sData.nz).normalize();
+                screwMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal);
+                screwMesh.userData = { screwId: sData.id, normal };
+
+                modelGroup.add(screwMesh);
+                screwMeshMap.set(sData.id, screwMesh);
+            });
+        }
+
+        function createScrewMesh(hexColor) {
+            const group = new THREE.Group();
+
+            // Chrome ring
+            const ringGeo = new THREE.CylinderGeometry(0.18, 0.18, 0.08, 20);
+            ringGeo.rotateX(Math.PI / 2);
+            const ring = new THREE.Mesh(
+                ringGeo,
+                new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.85, roughness: 0.2 })
+            );
+            group.add(ring);
+
+            // Color cap
+            const capGeo = new THREE.CylinderGeometry(0.14, 0.14, 0.09, 20);
+            capGeo.rotateX(Math.PI / 2);
+            const cap = new THREE.Mesh(
+                capGeo,
+                new THREE.MeshStandardMaterial({ color: parseInt(hexColor.replace('#', '0x'), 16), roughness: 0.3 })
+            );
+            group.add(cap);
+
+            // Cross slit (+)
+            const slitMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 });
+            const sH = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.035, 0.095), slitMat);
+            const sV = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.16, 0.095), slitMat);
+            group.add(sH, sV);
+
+            return group;
+        }
+
+        function renderUIBoxes() {
+            const container = document.getElementById('boxes-container');
+            container.innerHTML = '';
+            stateMachine.activeBoxes.forEach((box, idx) => {
+                const card = document.createElement('div');
+                card.className = 'box-card';
+                card.id = `box-ui-${idx}`;
+                card.style.borderColor = box.color;
+                for (let i = 0; i < 3; i++) {
+                    const socket = document.createElement('div');
+                    socket.className = 'box-socket';
+                    if (i < box.screws.length) {
+                        socket.classList.add('filled');
+                        socket.style.backgroundColor = box.color;
+                    }
+                    card.appendChild(socket);
+                }
+                container.appendChild(card);
+            });
+        }
+
+        function renderUIBackupTray() {
+            const tray = document.getElementById('backup-tray');
+            tray.innerHTML = '';
+            stateMachine.backupHoles.forEach((hole, idx) => {
+                const slot = document.createElement('div');
+                slot.className = 'hole-slot';
+                if (!hole.isUnlocked) {
+                    slot.classList.add('locked');
+                } else if (hole.screwId) {
+                    const screwElem = document.createElement('div');
+                    screwElem.className = 'hole-screw';
+                    screwElem.style.backgroundColor = hole.color;
+                    slot.appendChild(screwElem);
+                }
+                tray.appendChild(slot);
+            });
+        }
+
+        function setupEvents() {
+            const container = document.getElementById('canvas-container');
+
+            const onDown = (e) => {
+                isDragging = true;
+                const x = e.clientX || (e.touches && e.touches[0].clientX);
+                const y = e.clientY || (e.touches && e.touches[0].clientY);
+                previousPointerX = x;
+                pointerDownStartPos = { x, y };
+            };
+
+            const onMove = (e) => {
+                if (!isDragging) return;
+                const x = e.clientX || (e.touches && e.touches[0].clientX);
+                const deltaX = x - previousPointerX;
+                previousPointerX = x;
+                targetRotationY += deltaX * 0.008;
+
+                const hint = document.getElementById('rotate-hint');
+                if (hint) hint.style.opacity = '0';
+            };
+
+            const onUp = (e) => {
+                if (!isDragging) return;
+                isDragging = false;
+                const endX = e.clientX || (e.changedTouches && e.changedTouches[0].clientX) || previousPointerX;
+                const endY = e.clientY || (e.changedTouches && e.changedTouches[0].clientY) || pointerDownStartPos.y;
+                const dist = Math.hypot(endX - pointerDownStartPos.x, endY - pointerDownStartPos.y);
+
+                if (dist < 8) {
+                    handleTap(endX, endY);
+                }
+            };
+
+            container.addEventListener('mousedown', onDown);
+            window.addEventListener('mousemove', onMove);
+            window.addEventListener('mouseup', onUp);
+
+            container.addEventListener('touchstart', onDown, { passive: false });
+            window.addEventListener('touchmove', onMove, { passive: false });
+            window.addEventListener('touchend', onUp);
+        }
+
+        function handleTap(screenX, screenY) {
+            mouse.x = (screenX / window.innerWidth) * 2 - 1;
+            mouse.y = -(screenY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(Array.from(screwMeshMap.values()), true);
+
+            if (intersects.length > 0) {
+                let obj = intersects[0].object;
+                while (obj && !obj.userData.screwId && obj.parent) {
+                    obj = obj.parent;
+                }
+                if (obj && obj.userData && obj.userData.screwId) {
+                    onScrewTap(obj.userData.screwId, obj);
+                }
+            }
+        }
+
+        function onScrewTap(screwId, mesh) {
+            const res = stateMachine.tapScrew(screwId);
+            if (!res) return;
+
+            if (res.action === 'TO_BOX') {
+                Sound.playRatchet();
+                animateUnscrew(mesh, () => {
+                    Sound.playPop();
+                    renderUIBoxes();
+                    if (res.boxCompleted) {
+                        Sound.playBoxComplete();
+                        const card = document.getElementById(`box-ui-${res.boxIndex}`);
+                        if (card) {
+                            card.style.transform = 'scale(1.15)';
+                            setTimeout(() => {
+                                card.style.transform = 'scale(0) translateX(-100px)';
+                                setTimeout(() => {
+                                    stateMachine.onBoxCompleted(res.boxIndex);
+                                    renderUIBoxes();
+                                    renderUIBackupTray();
+                                    checkEnd();
+                                }, 220);
+                            }, 180);
+                        }
+                    } else {
+                        checkEnd();
+                    }
+                });
+            } else if (res.action === 'TO_BACKUP') {
+                Sound.playRatchet();
+                animateUnscrew(mesh, () => {
+                    Sound.playPop();
+                    renderUIBackupTray();
+                    checkEnd();
+                });
+            } else if (res.action === 'BLOCKED') {
+                const origX = mesh.position.x;
+                mesh.position.x += 0.05;
+                setTimeout(() => { mesh.position.x = origX - 0.05; }, 50);
+                setTimeout(() => { mesh.position.x = origX; }, 100);
+            }
+        }
+
+        function animateUnscrew(mesh, onDone) {
+            const normal = mesh.userData.normal;
+            const startPos = mesh.position.clone();
+            const targetPos = startPos.clone().add(normal.clone().multiplyScalar(0.75));
+            const startRot = mesh.rotation.z;
+            const startTime = performance.now();
+            const duration = 240;
+
+            function step(now) {
+                const p = Math.min((now - startTime) / duration, 1);
+                const ease = 1 - Math.pow(1 - p, 3);
+
+                mesh.position.lerpVectors(startPos, targetPos, ease);
+                mesh.rotation.z = startRot - (Math.PI * 4) * ease;
+                mesh.scale.setScalar(1 - ease * 0.9);
+
+                if (p < 1) {
+                    requestAnimationFrame(step);
+                } else {
+                    mesh.visible = false;
+                    if (onDone) onDone();
+                }
+            }
+            requestAnimationFrame(step);
+        }
+
+        function checkEnd() {
+            if (stateMachine.checkWin()) {
+                Sound.playWinFanfare();
+                document.getElementById('modal-icon').innerText = '⭐ ⭐ ⭐';
+                document.getElementById('modal-title').innerText = 'STAGE CLEARED!';
+                document.getElementById('modal-title').style.color = '#10b981';
+                document.getElementById('modal-desc').innerText = 'You cleared all screws from the 3D toy cottage!';
+                document.getElementById('modal-overlay').classList.add('active');
+            } else if (stateMachine.checkLoss()) {
+                document.getElementById('modal-icon').innerText = '💥';
+                document.getElementById('modal-title').innerText = 'OUT OF SLOTS!';
+                document.getElementById('modal-title').style.color = '#ef4444';
+                document.getElementById('modal-desc').innerText = 'Backup tray is full and no open boxes match.';
+                document.getElementById('modal-btn').innerText = 'TRY AGAIN';
+                document.getElementById('modal-overlay').classList.add('active');
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            currentRotationY += (targetRotationY - currentRotationY) * 0.1;
+            if (modelGroup) {
+                modelGroup.rotation.y = currentRotationY;
+            }
+            renderer.render(scene, camera);
+        }
+
+        // Auto-run cleanly
+        if (document.readyState === 'loading') {
+            window.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    })();
+    </script>
 </body>
 </html>
