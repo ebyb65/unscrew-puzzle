@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Unscrew Anything</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0f1015;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        #game-container {
+            width: 380px;
+            height: 640px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+        }
+    </style>
+    <!-- Phaser 3 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+    <!-- Our Game Logic & Scene -->
+    <script src="unscrew_puzzle_core.js"></script>
+</head>
+<body>
+    <div id="game-container"></div>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const { UnscrewPuzzleScene, SampleLevel } = window.UnscrewPuzzle;
+
+            const config = {
+                type: Phaser.AUTO,
+                width: 380,
+                height: 640,
+                parent: 'game-container',
+                backgroundColor: '#1E1E24',
+                scale: {
+                    mode: Phaser.Scale.FIT,
+                    autoCenter: Phaser.Scale.CENTER_BOTH
+                },
+                scene: [UnscrewPuzzleScene]
+            };
+
+            const game = new Phaser.Game(config);
+
+            // Pass sample level data into the scene
+            game.scene.start('UnscrewPuzzleScene', { levelConfig: SampleLevel });
+        });
+    </script>
+</body>
+</html>
